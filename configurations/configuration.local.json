@@ -9,6 +9,12 @@
                     "name": "pdf",
                     "export_limit": 10,
                     "base_path": "data/bavarian_beer"
+                },
+                {
+                    "name": "hackernews",
+                    "export_limit": 20,
+                    "export_batch_size": 5,
+                    "base_url": "https://hacker-news.firebaseio.com/v0"
                 }
             ],
             "embedding_model": {
@@ -23,8 +29,8 @@
             },
             "vector_store": {
                 "name": "qdrant",
-                "collection_name": "collection-local",
-                "host": "127.0.0.1",
+                "collection_name": "collection-default",
+                "host": "qdrant",
                 "protocol": "http",
                 "ports": {
                     "rest": 6333
@@ -50,11 +56,11 @@
                 "postprocessors": []
             },
             "langfuse": {
-                "host": "127.0.0.1",
+                "host": "langfuse",
                 "protocol": "http",
                 "port": 3000,
                 "database": {
-                    "host": "127.0.0.1",
+                    "host": "langfuse-db",
                     "port": 5432,
                     "db": "langfuse"
                 }

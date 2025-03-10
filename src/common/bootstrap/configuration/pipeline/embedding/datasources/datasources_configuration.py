@@ -14,6 +14,7 @@ class DatasourceName(str, Enum):
     NOTION = "notion"
     CONFLUENCE = "confluence"
     PDF = "pdf"
+    HACKERNEWS = "hackernews"
 
 
 # Secrets
@@ -51,6 +52,12 @@ class ConfluenceSecrets(BaseSettings):
 
 
 class PdfSecrets(BaseSettings):
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+
+
+class HackerNewsSecrets(BaseSettings):
     model_config = ConfigDict(
         extra="ignore",
     )
@@ -122,8 +129,26 @@ class PdfDatasourceConfiguration(DatasourceConfiguration):
     )
 
 
+class HackerNewsDatasourceConfiguration(DatasourceConfiguration):
+    name: Literal[DatasourceName.HACKERNEWS] = Field(
+        ..., description="The name of the data source."
+    )
+    export_batch_size: int = Field(
+        10,
+        description="Number of stories being exported asynchronously. Adjust to balance speed and API load.",
+    )
+    base_url: str = Field(
+        "https://hacker-news.firebaseio.com/v0",
+        description="Base URL for the HackerNews API",
+    )
+    secrets: HackerNewsSecrets = Field(
+        None, description="The secrets for the data source."
+    )
+
+
 AVAIALBLE_DATASOURCES = Union[
     NotionDatasourceConfiguration,
     ConfluenceDatasourceConfiguration,
     PdfDatasourceConfiguration,
+    HackerNewsDatasourceConfiguration,
 ]

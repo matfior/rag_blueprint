@@ -9,6 +9,12 @@
                     "name": "pdf",
                     "export_limit": 10,
                     "base_path": "data/bavarian_beer"
+                },
+                {
+                    "name": "hackernews",
+                    "export_limit": 20,
+                    "export_batch_size": 5,
+                    "base_url": "https://hacker-news.firebaseio.com/v0"
                 }
             ],
             "embedding_model": {

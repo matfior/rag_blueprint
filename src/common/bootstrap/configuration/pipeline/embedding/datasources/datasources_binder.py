@@ -11,6 +11,7 @@ from common.bootstrap.configuration.pipeline.embedding.datasources.datasources_b
 from common.bootstrap.configuration.pipeline.embedding.datasources.datasources_configuration import (
     ConfluenceDatasourceConfiguration,
     DatasourceName,
+    HackerNewsDatasourceConfiguration,
     NotionDatasourceConfiguration,
     PdfDatasourceConfiguration,
 )
@@ -25,6 +26,16 @@ from embedding.datasources.confluence.cleaner import ConfluenceCleaner
 from embedding.datasources.confluence.manager import ConfluenceDatasourceManager
 from embedding.datasources.confluence.reader import ConfluenceReader
 from embedding.datasources.confluence.splitter import ConfluenceSplitter
+from embedding.datasources.hackernews.builders import (
+    HackerNewsCleanerBuilder,
+    HackerNewsDatasourceManagerBuilder,
+    HackerNewsReaderBuilder,
+    HackerNewsSplitterBuilder,
+)
+from embedding.datasources.hackernews.cleaner import HackerNewsCleaner
+from embedding.datasources.hackernews.manager import HackerNewsDatasourceManager
+from embedding.datasources.hackernews.reader import HackerNewsReader
+from embedding.datasources.hackernews.splitter import HackerNewsSplitter
 from embedding.datasources.notion.builders import (
     NotionCleanerBuilder,
     NotionClientBuilder,
@@ -50,6 +61,8 @@ from embedding.orchestrators.builders import DatasourceOrchestratorBuilder
 from embedding.orchestrators.datasource_orchestrator import (
     DatasourceOrchestrator,
 )
+from embedding.validators.builders import DatasourceValidatorBuilder
+from embedding.validators.datasource_validator import DatasourceValidator
 
 
 class NotionDatasourceBinder(BaseBinder):
@@ -279,5 +292,98 @@ class DatasourcesBinder(BaseBinder):
         self.binder.bind(
             DatasourceOrchestrator,
             to=DatasourceOrchestratorBuilder.build,
+            scope=singleton,
+        )
+
+    def configure_hackernews_datasource(self, binder):
+        """Configure HackerNews datasource bindings.
+
+        Args:
+            binder: Injector binder for dependency registration
+        """
+        # Bind HackerNews configuration
+        binder.bind(
+            HackerNewsDatasourceConfiguration,
+            to=self._get_datasource_configuration(DatasourceName.HACKERNEWS),
+            scope=singleton,
+        )
+
+        # Bind HackerNews reader
+        binder.bind(
+            HackerNewsReader,
+            to=HackerNewsReaderBuilder.build,
+            scope=singleton,
+        )
+
+        # Bind HackerNews cleaner
+        binder.bind(
+            HackerNewsCleaner,
+            to=HackerNewsCleanerBuilder.build,
+            scope=singleton,
+        )
+
+        # Bind HackerNews splitter
+        binder.bind(
+            HackerNewsSplitter,
+            to=HackerNewsSplitterBuilder.build,
+            scope=singleton,
+        )
+
+        # Bind HackerNews datasource manager
+        binder.bind(
+            HackerNewsDatasourceManager,
+            to=HackerNewsDatasourceManagerBuilder.build,
+            scope=singleton,
+        )
+
+    def configure(self, binder):
+        """Configure all datasource bindings.
+
+        Args:
+            binder: Injector binder for dependency registration
+        """
+        # Bind datasource managers
+        datasource_managers = []
+
+        # Configure datasources based on configuration
+        for datasource_config in self.configuration.datasources:
+            if datasource_config.name == DatasourceName.NOTION:
+                self.configure_notion_datasource(binder)
+                datasource_managers.append(NotionDatasourceManager)
+            elif datasource_config.name == DatasourceName.CONFLUENCE:
+                self.configure_confluence_datasource(binder)
+                datasource_managers.append(ConfluenceDatasourceManager)
+            elif datasource_config.name == DatasourceName.PDF:
+                self.configure_pdf_datasource(binder)
+                datasource_managers.append(PdfDatasourceManager)
+            elif datasource_config.name == DatasourceName.HACKERNEWS:
+                self.configure_hackernews_datasource(binder)
+                datasource_managers.append(HackerNewsDatasourceManager)
+
+        # Bind datasource managers list
+        binder.bind(
+            BoundDatasourceManagers,
+            to=datasource_managers,
+            scope=singleton,
+        )
+
+        # Bind datasource validator
+        binder.bind(
+            DatasourceValidator,
+            to=DatasourceValidatorBuilder.build,
+            scope=singleton,
+        )
+
+        # Bind datasource orchestrator
+        binder.bind(
+            DatasourceOrchestrator,
+            to=DatasourceOrchestratorBuilder.build,
+            scope=singleton,
+        )
+
+        # Bind embedder
+        binder.bind(
+            Embedder,
+            to=EmbedderBuilder.build,
             scope=singleton,
         )
